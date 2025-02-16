@@ -381,7 +381,6 @@ Makefile: ../../testwinapi.pro D:/MSYS/mingw64/share/qt6/mkspecs/win32-g++/qmake
 		D:/MSYS/mingw64/share/qt6/mkspecs/features/qt_config.prf \
 		D:/MSYS/mingw64/share/qt6/mkspecs/win32-g++/qmake.conf \
 		D:/MSYS/mingw64/share/qt6/mkspecs/features/spec_post.prf \
-		.qmake.stash \
 		D:/MSYS/mingw64/share/qt6/mkspecs/features/exclusive_builds.prf \
 		D:/MSYS/mingw64/share/qt6/mkspecs/features/toolchain.prf \
 		D:/MSYS/mingw64/share/qt6/mkspecs/features/default_pre.prf \
@@ -408,6 +407,7 @@ Makefile: ../../testwinapi.pro D:/MSYS/mingw64/share/qt6/mkspecs/win32-g++/qmake
 		D:/MSYS/mingw64/share/qt6/mkspecs/features/lex.prf \
 		../../testwinapi.pro \
 		D:/MSYS/mingw64/lib/Qt6EntryPoint.prl \
+		.qmake.stash \
 		D:/MSYS/mingw64/share/qt6/mkspecs/features/build_pass.prf
 	$(QMAKE) -o Makefile ..\..\testwinapi.pro -spec win32-g++ "CONFIG+=qtquickcompiler"
 D:/MSYS/mingw64/share/qt6/mkspecs/features/spec_pre.prf:
@@ -721,7 +721,6 @@ D:/MSYS/mingw64/share/qt6/mkspecs/features/qt_functions.prf:
 D:/MSYS/mingw64/share/qt6/mkspecs/features/qt_config.prf:
 D:/MSYS/mingw64/share/qt6/mkspecs/win32-g++/qmake.conf:
 D:/MSYS/mingw64/share/qt6/mkspecs/features/spec_post.prf:
-.qmake.stash:
 D:/MSYS/mingw64/share/qt6/mkspecs/features/exclusive_builds.prf:
 D:/MSYS/mingw64/share/qt6/mkspecs/features/toolchain.prf:
 D:/MSYS/mingw64/share/qt6/mkspecs/features/default_pre.prf:
@@ -748,6 +747,7 @@ D:/MSYS/mingw64/share/qt6/mkspecs/features/yacc.prf:
 D:/MSYS/mingw64/share/qt6/mkspecs/features/lex.prf:
 ../../testwinapi.pro:
 D:/MSYS/mingw64/lib/Qt6EntryPoint.prl:
+.qmake.stash:
 D:/MSYS/mingw64/share/qt6/mkspecs/features/build_pass.prf:
 qmake: FORCE
 	@$(QMAKE) -o Makefile ..\..\testwinapi.pro -spec win32-g++ "CONFIG+=qtquickcompiler"
