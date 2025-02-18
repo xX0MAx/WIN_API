@@ -13,10 +13,11 @@
 #include <tlhelp32.h>
 #include <QTimer>
 
+enum ProcessType {CP, Memory, Disk};
+
+int counterOfProcess;
 
 boolean autoReset = false;
-
-int counterProcess;
 
 QStringList pathList;
 
@@ -47,14 +48,14 @@ DWORD getProcessIdByPath(int index) {
     return 0;
 }
 
-void procList(QListWidget &list){
+void procList(QListWidget &list, ProcessType t){
     DWORD process[1024], cbNeeded, counter;
     QVector<double> dataList;
     pathList.clear();
 
-    if(!EnumProcesses(process, sizeof(process), &cbNeeded)){
-        return;
-    }
+    if (!EnumProcesses(process, sizeof(process), &cbNeeded)) {
+           return;
+       }
 
     counter = cbNeeded/sizeof(DWORD);
 
@@ -63,13 +64,13 @@ void procList(QListWidget &list){
         if (hProcess) {
             TCHAR processPath[MAX_PATH];
             if (GetModuleFileNameEx(hProcess, NULL, processPath, sizeof(processPath) / sizeof(TCHAR))){
-                if(counterProcess == 1){
+                if(t == Memory){
                     PROCESS_MEMORY_COUNTERS memory;
                     if (GetProcessMemoryInfo(hProcess, &memory, sizeof(memory))) {
                         dataList.append((memory.WorkingSetSize / 1024.0) / 1024.0);
                     }
                 }
-                else if(counterProcess == 2){
+                else if(t == CP){
                     FILETIME creationTime, exitTime, kernelTime, userTime;
                     if (GetProcessTimes(hProcess, &creationTime, &exitTime, &kernelTime, &userTime)) {
                         ULARGE_INTEGER userTimeInt, kernelTimeInt;
@@ -96,7 +97,7 @@ void procList(QListWidget &list){
                         }
                     }
                 }
-                else if(counterProcess == 3){
+                else if(t == Disk){
                     IO_COUNTERS ioCounters;
                     if (GetProcessIoCounters(hProcess, &ioCounters)){
                         dataList.append(((double)ioCounters.WriteTransferCount / 1024.0) / 1024.0);
@@ -127,35 +128,44 @@ void procList(QListWidget &list){
     } while (swapped);
     for(int i = 0; i<dataList.size();i++){
         QString info;
-        if(counterProcess == 1){
-            info = QString("Процесс: %1, Используемая память: %2 Мб").arg(QFileInfo(pathList[i]).fileName()).arg(dataList[i]);
-        }
-        else if (counterProcess == 2){
+
+        switch (t) {
+        case CP:
             info = QString("Процесс: %1, Используемый ЦП: %2%").arg(QFileInfo(pathList[i]).fileName()).arg(dataList[i]);
-        }
-        else if (counterProcess == 3){
+            break;
+
+        case Memory:
+            info = QString("Процесс: %1, Используемая память: %2 Мб").arg(QFileInfo(pathList[i]).fileName()).arg(dataList[i]);
+            break;
+
+        case Disk:
             info = QString("Процесс: %1, Используемый Диск для записи: %2 Мб").arg(QFileInfo(pathList[i]).fileName()).arg(dataList[i]);
+            break;
+
+        default:
+            break;
         }
+
         list.addItem(info);
     }
 }
 
 void PressMemory(QListWidget &list){
     list.clear();
-    counterProcess = 1;
-    procList(list);
+    procList(list, ProcessType::Memory);
+    counterOfProcess = 2;
 }
 
 void PressCP(QListWidget &list){
     list.clear();
-    counterProcess = 2;
-    procList(list);
+    procList(list, ProcessType::CP);
+    counterOfProcess = 1;
 }
 
 void PressDisk(QListWidget &list){
     list.clear();
-    counterProcess = 3;
-    procList(list);
+    procList(list, ProcessType::Disk);
+    counterOfProcess = 3;
 }
 
 void PressStop(int index){
@@ -217,15 +227,24 @@ void PressAutoReset(QListWidget &list){
     windowInfo->setWindowTitle("Автообновление данных");
 
     QObject::connect(timer, &QTimer::timeout, [&list]() {
-        if(counterProcess == 1){
-            PressMemory(list);
-        }
-        else if(counterProcess == 2){
+
+        switch (counterOfProcess) {
+        case 1:
             PressCP(list);
-        }
-        else if(counterProcess == 3){
+            break;
+
+        case 2:
+            PressMemory(list);
+            break;
+
+        case 3:
             PressDisk(list);
+            break;
+
+        default:
+            break;
         }
+
     });
 
     if(autoReset){
@@ -307,6 +326,20 @@ int main(int argc, char *argv[])
     layout->addWidget(&buttonDisk, 4,1);
 
     window.show();
+
+    QObject::connect(&a, &QApplication::aboutToQuit, [&]() {
+
+        if (timer) {
+            timer->stop();
+            timer->deleteLater();
+        }
+
+        if (windowInfo) {
+            windowInfo->close();
+            windowInfo->deleteLater();
+        }
+
+    });
 
     return a.exec();
 }
